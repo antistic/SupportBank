@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using NLog;
@@ -117,6 +118,9 @@ namespace SupportBank
                 case ".json":
                     data = ParseJSON(fileName);
                     break;
+                case ".xml":
+                    data = ParseXML(fileName);
+                    break;
                 default:
                     Console.WriteLine("Invalid extension (should be .json or .csv)");
                     logger.Debug("Invalid extension - found " + ext);
@@ -230,6 +234,41 @@ namespace SupportBank
             {
                 Console.WriteLine("Error while parsing JSON: " + e.Message);
                 logger.Error("Error while parsing JSON: " + e.Message);
+            }
+
+            return null;
+        }
+
+        static TransactionList ParseXML(string fileName)
+        {
+            try
+            {
+                XElement xml = XElement.Load(fileName);
+
+                DateTime epoch = DateTime.Parse("01/01/1900");
+                List<Transaction> transactions = (
+                    from transaction in xml.Elements("SupportTransaction")
+                    select new Transaction(
+                        epoch.AddDays(int.Parse(transaction.Attribute("Date").Value)),
+                        transaction.Element("Parties").Element("From").Value,
+                        transaction.Element("Parties").Element("To").Value,
+                        transaction.Element("Description").Value,
+                        decimal.Parse(transaction.Element("Value").Value)
+                    )
+                ).ToList();
+                
+                TransactionList data = new TransactionList();
+                foreach (Transaction t in transactions)
+                {
+                    data.Add(t);
+                }
+
+                return data;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error while parsing XML: " + e.Message);
+                logger.Error("Error while parsing XML: " + e.Message);
             }
 
             return null;
