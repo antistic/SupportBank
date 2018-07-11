@@ -25,15 +25,15 @@ namespace SupportBank
             Transactions.Add(t);
 
             // update accounts
-            if (!Accounts.ContainsKey(t.From)) Accounts.Add(t.From, 0);
-            if (!Accounts.ContainsKey(t.To)) Accounts.Add(t.To, 0);
+            if (!Accounts.ContainsKey(t.FromAccount)) Accounts.Add(t.FromAccount, 0);
+            if (!Accounts.ContainsKey(t.ToAccount)) Accounts.Add(t.ToAccount, 0);
 
-            Accounts[t.From] -= t.Amount;
-            Accounts[t.To] += t.Amount;
+            Accounts[t.FromAccount] -= t.Amount;
+            Accounts[t.ToAccount] += t.Amount;
 
             // update maxwidths
-            if (t.From.ToString().Length > MaxWidths["from"]) MaxWidths["from"] = t.From.ToString().Length;
-            if (t.To.ToString().Length > MaxWidths["to"]) MaxWidths["to"] = t.To.ToString().Length;
+            if (t.FromAccount.ToString().Length > MaxWidths["from"]) MaxWidths["from"] = t.FromAccount.ToString().Length;
+            if (t.ToAccount.ToString().Length > MaxWidths["to"]) MaxWidths["to"] = t.ToAccount.ToString().Length;
             if (t.Narrative.ToString().Length > MaxWidths["narrative"]) MaxWidths["narrative"] = t.Narrative.ToString().Length;
         }
 
@@ -66,7 +66,7 @@ namespace SupportBank
             // contents
             foreach (Transaction t in Transactions)
             {
-                if (t.From.Equals(name) || t.To.Equals(name))
+                if (t.FromAccount.Equals(name) || t.ToAccount.Equals(name))
                 {
                     Console.WriteLine(
                         "{0:dd/MM/yy}\t" +
@@ -74,7 +74,7 @@ namespace SupportBank
                         "{2,-" + MaxWidths["to"] + "}\t" +
                         "{3,-" + MaxWidths["narrative"] + "}\t" +
                         "{4,10:C2}",
-                        t.Date, t.From, t.To, t.Narrative, t.Amount
+                        t.Date, t.FromAccount, t.ToAccount, t.Narrative, t.Amount
                     );
                 }
             }
@@ -89,15 +89,15 @@ namespace SupportBank
         public Transaction(DateTime date, string from, string to, string narrative, decimal amount)
         {
             Date = date;
-            From = from;
-            To = to;
+            FromAccount = from;
+            ToAccount = to;
             Narrative = narrative;
             Amount = amount;
         }
 
         public DateTime Date { get; set; }
-        public string From { get; set; }
-        public string To { get; set; }
+        public string FromAccount { get; set; }
+        public string ToAccount { get; set; }
         public string Narrative { get; set; }
         public decimal Amount { get; set; }
     }

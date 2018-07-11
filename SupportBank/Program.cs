@@ -8,6 +8,7 @@ using Microsoft.VisualBasic.FileIO;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Newtonsoft.Json;
 
 namespace SupportBank
 {
@@ -212,9 +213,26 @@ namespace SupportBank
 
         static TransactionList ParseJSON(string fileName)
         {
-            TransactionList data = new TransactionList();
+            try
+            {
+                string fileInput = File.ReadAllText(fileName);
+                List<Transaction> transactions = JsonConvert.DeserializeObject<List<Transaction>>(fileInput);
 
-            return data;
+                TransactionList data = new TransactionList();
+                foreach (Transaction t in transactions)
+                {
+                    data.Add(t);
+                }
+
+                return data;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error while parsing JSON: " + e.Message);
+                logger.Error("Error while parsing JSON: " + e.Message);
+            }
+
+            return null;
         }
     }
 }
