@@ -25,6 +25,8 @@ namespace SupportBank
 
             logger.Log(LogLevel.Info, "Program Started");
 
+            TransactionList data = ParseCSV(@"..\..\..\DodgyTransactions2015.csv");
+
             // program loop
             string input = "";
             while (!input.Equals("q"))
@@ -39,7 +41,6 @@ namespace SupportBank
                 else
                 {
                     Console.WriteLine();
-                    TransactionList data = ParseCSV(@"..\..\..\Transactions2014.csv");
                     string item = input.Split(new[] { ' ' }, 2)[1];
                     switch (item)
                     {
@@ -76,27 +77,29 @@ namespace SupportBank
         {
             TransactionList data = new TransactionList();
 
-
             logger.Log(LogLevel.Debug, "Parsing file '" + fileName + "'");
             using (TextFieldParser parser = new TextFieldParser(fileName))
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
 
+                int index = 0;
                 
                 if (!parser.EndOfData)
                 {
                     // header
                     // TODO?: check header is as expected
                     parser.ReadFields();
+                    index += 1;
                 }
 
                 // rest of csv
+                List<int> errorLines = new List<int>();
                 while (!parser.EndOfData)
                 {
                     string[] fields = parser.ReadFields();
+                    index += 1;
 
-                    // TODO exception handling on convert
                     try
                     {
                         Transaction t = new Transaction(
@@ -111,9 +114,19 @@ namespace SupportBank
                     }
                     catch (Exception e)
                     {
-                        logger.Log(LogLevel.Error, "Error found: " + e);
-                        throw;
+                        logger.Log(LogLevel.Error, "Error found on line " + index + " in the CSV: " + e);
+                        errorLines.Add(index);
                     }
+                }
+
+                if (errorLines.Any())
+                {
+                    Console.Write("Errors have been found on lines ");
+                    foreach (int line in errorLines)
+                    {
+                        Console.Write(line + ", ");
+                    }
+                    Console.WriteLine("these transactions will be ignored.");
                 }
             }
 
