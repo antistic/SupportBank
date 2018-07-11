@@ -51,6 +51,9 @@ namespace SupportBank
                             data = Import(command[1]);
                             if (data != null) Console.WriteLine("File imported.");
                             break;
+                        case "Export":
+                            Export(command[1], data);
+                            break;
                         case "List":
                             if (data == null)
                             {
@@ -88,12 +91,15 @@ namespace SupportBank
             if (command.Equals("q")) return true;
 
             string[] split = command.Split(new[] { ' ' }, 2);
-            if (split[0].Equals("List") || split[0].Equals("Import"))
+            switch (split[1])
             {
-                return true;
+                case "List":
+                case "Import":
+                case "Export":
+                    return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
 
         static TransactionList Import(string fileName)
@@ -122,7 +128,7 @@ namespace SupportBank
                     data = ParseXML(fileName);
                     break;
                 default:
-                    Console.WriteLine("Invalid extension (should be .json or .csv)");
+                    Console.WriteLine("Invalid extension (should be .json, .csv or .xml)");
                     logger.Debug("Invalid extension - found " + ext);
                     break;
             }
@@ -262,6 +268,50 @@ namespace SupportBank
             }
 
             return null;
+        }
+
+        static void Export(string fileName, TransactionList data)
+        {
+            logger.Debug("Exporting to file '" + fileName + "'");
+
+            if (data == null)
+            {
+                Console.WriteLine("No data to export!");
+                logger.Warn("Cannot export to " + fileName + " because no data found");
+            }
+            
+            string ext = Path.GetExtension(fileName);
+            switch (ext)
+            {
+                case ".csv":
+                    ExportCSV(fileName, data);
+                    break;
+                case ".json":
+                    ExportJSON(fileName, data);
+                    break;
+                case ".xml":
+                    ExportXML(fileName, data);
+                    break;
+                default:
+                    Console.WriteLine("Invalid extension (should be .json, .csv or .xml)");
+                    logger.Debug("Invalid extension - found " + ext);
+                    break;
+            }
+        }
+
+        static void ExportCSV(string fileName, TransactionList data)
+        {
+            // TODO
+        }
+
+        static void ExportJSON(string fileName, TransactionList data)
+        {
+            // TODO
+        }
+
+        static void ExportXML(string fileName, TransactionList data)
+        {
+            // TODO
         }
     }
 }
