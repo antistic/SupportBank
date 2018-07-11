@@ -26,7 +26,7 @@ namespace SupportBank
 
             foreach (Transaction t in list)
             {
-                Transactions.Add(t);
+                Add(t);
             }
         }
 

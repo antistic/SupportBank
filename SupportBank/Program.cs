@@ -91,7 +91,7 @@ namespace SupportBank
             if (command.Equals("q")) return true;
 
             string[] split = command.Split(new[] { ' ' }, 2);
-            switch (split[1])
+            switch (split[0])
             {
                 case "List":
                 case "Import":
@@ -301,17 +301,55 @@ namespace SupportBank
 
         static void ExportCSV(string fileName, TransactionList data)
         {
-            // TODO
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fileName))
+            {
+                file.WriteLine("Date,From,To,Narrative,Amount");
+                foreach (Transaction t in data.Transactions)
+                {
+                    file.WriteLine(
+                        "{0:dd/MM/yy},{1},{2},{3},{4}",
+                        t.Date, t.FromAccount, t.ToAccount, t.Narrative, t.Amount
+                    );
+                }
+            }
         }
 
         static void ExportJSON(string fileName, TransactionList data)
         {
-            // TODO
+            string output = JsonConvert.SerializeObject(data.Transactions);
+            try
+            {
+                File.WriteAllText(fileName, output);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Could not write to file.");
+                logger.Debug("Could not write to file " + e.Message);
+                throw;
+            }
         }
 
         static void ExportXML(string fileName, TransactionList data)
         {
-            // TODO
+            List<Transaction> ts = data.Transactions;
+            DateTime epoch = DateTime.Parse("01/01/1900");
+            XElement xml =
+                new XElement("TransactionList",
+                    ts.Select(
+                        (t) =>
+                            new XElement("SupportTransaction",
+                                new XAttribute("Date", (t.Date - epoch).Days),
+                                new XElement("Description", new XText(t.Narrative)),
+                                new XElement("Parties",
+                                    new XElement("From", new XText(t.FromAccount)),
+                                    new XElement("To", new XText(t.ToAccount))
+                                ),
+                                new XElement("Value", new XText(t.Amount.ToString()))
+                            )
+                    )
+                );
+
+            File.WriteAllText(fileName, xml.ToString());
         }
     }
 }
