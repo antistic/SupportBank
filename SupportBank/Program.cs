@@ -47,6 +47,7 @@ namespace SupportBank
                     {
                         case "Import":
                             data = Import(command[1]);
+                            if (data != null) Console.WriteLine("File imported.");
                             break;
                         case "List":
                             if (data == null)
@@ -82,6 +83,8 @@ namespace SupportBank
 
         static bool ValidCommand(string command)
         {
+            if (command.Equals("q")) return true;
+
             string[] split = command.Split(new[] { ' ' }, 2);
             if (split[0].Equals("List") || split[0].Equals("Import"))
             {
@@ -94,19 +97,28 @@ namespace SupportBank
         static TransactionList Import(string fileName)
         {
             logger.Debug("Importing file '" + fileName + "'");
+
             TransactionList data = null;
+            
+            if (!File.Exists(fileName))
+            {
+                Console.WriteLine("File does not exist");
+                logger.Error("File does not exist - " + fileName);
+                return data;
+            }
 
             string ext = Path.GetExtension(fileName);
             switch (ext)
             {
-                case "csv":
+                case ".csv":
                     data = ParseCSV(fileName);
                     break;
-                case "json":
+                case ".json":
                     data = ParseJSON(fileName);
                     break;
                 default:
                     Console.WriteLine("Invalid extension (should be .json or .csv)");
+                    logger.Debug("Invalid extension - found " + ext);
                     break;
             }
 
@@ -186,6 +198,12 @@ namespace SupportBank
                         
                         Console.WriteLine("\t" + lineNumber + ": " + e.Message);
                     }
+                }
+
+
+                if (errorsFound)
+                {
+                    Console.WriteLine("You should fix these errors and try importing again.");
                 }
             }
 
