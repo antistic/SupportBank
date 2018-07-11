@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using NLog;
 using NLog.Config;
@@ -16,6 +17,8 @@ namespace SupportBank
 
         static void Main(string[] args)
         {
+            TransactionList data = null;
+
             // set up logging
             var config = new LoggingConfiguration();
             var target = new FileTarget { FileName = @"..\..\..\Logs\SupportBank.log", Layout = @"${longdate} ${level} - ${logger}: ${message}" };
@@ -24,8 +27,6 @@ namespace SupportBank
             LogManager.Configuration = config;
 
             logger.Info("Program Started");
-
-            TransactionList data = ParseCSV(@"..\..\..\DodgyTransactions2015.csv");
 
             // program loop
             string input = "";
@@ -36,23 +37,40 @@ namespace SupportBank
                 if (!ValidCommand(input))
                 {
                     logger.Debug("Invalid input '" + input + "'");
-                    Console.WriteLine("Command must be 'List All', 'List [Account]' or 'q' to quit");
+                    Console.WriteLine("Command must be 'Import [Filename]', 'List All', 'List [Account]' or 'q' to quit");
                 }
                 else
                 {
                     Console.WriteLine();
-                    string item = input.Split(new[] { ' ' }, 2)[1];
-                    switch (item)
+                    string[] command = input.Split(new[] { ' ' }, 2);
+                    switch (command[0])
                     {
-                        case "All":
-                            logger.Debug("Listing All");
-                            Console.WriteLine("Listing All:");
-                            data.PrintAll();
+                        case "Import":
+                            data = Import(command[1]);
+                            break;
+                        case "List":
+                            if (data == null)
+                            {
+                                Console.WriteLine("You need to import some data first.");
+                            }
+                            else
+                            {
+                                switch (command[1])
+                                {
+                                    case "All":
+                                        logger.Debug("Listing All");
+                                        Console.WriteLine("Listing All:");
+                                        data.PrintAll();
+                                        break;
+                                    default:
+                                        logger.Debug("Listing transactions involving '" + command[1] + "'");
+                                        Console.WriteLine("Listing transactions involving '" + command[1] + "':");
+                                        data.PrintAccount(command[1]);
+                                        break;
+                                }
+                            }
                             break;
                         default:
-                            logger.Debug("Listing transactions involving '" + item + "'");
-                            Console.WriteLine("Listing transactions involving '" + item + "':");
-                            data.PrintAccount(item);
                             break;
                     }
                     Console.WriteLine();
@@ -65,12 +83,34 @@ namespace SupportBank
         static bool ValidCommand(string command)
         {
             string[] split = command.Split(new[] { ' ' }, 2);
-            if (split[0].Equals("List"))
+            if (split[0].Equals("List") || split[0].Equals("Import"))
             {
                 return true;
             }
 
             return false;
+        }
+
+        static TransactionList Import(string fileName)
+        {
+            logger.Debug("Importing file '" + fileName + "'");
+            TransactionList data = null;
+
+            string ext = Path.GetExtension(fileName);
+            switch (ext)
+            {
+                case "csv":
+                    data = ParseCSV(fileName);
+                    break;
+                case "json":
+                    data = ParseJSON(fileName);
+                    break;
+                default:
+                    Console.WriteLine("Invalid extension (should be .json or .csv)");
+                    break;
+            }
+
+            return data;
         }
 
         static TransactionList ParseCSV(string fileName)
@@ -148,6 +188,13 @@ namespace SupportBank
                     }
                 }
             }
+
+            return data;
+        }
+
+        static TransactionList ParseJSON(string fileName)
+        {
+            TransactionList data = new TransactionList();
 
             return data;
         }
