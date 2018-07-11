@@ -219,13 +219,7 @@ namespace SupportBank
             try
             {
                 string fileInput = File.ReadAllText(fileName);
-                List<Transaction> transactions = JsonConvert.DeserializeObject<List<Transaction>>(fileInput);
-
-                TransactionList data = new TransactionList();
-                foreach (Transaction t in transactions)
-                {
-                    data.Add(t);
-                }
+                TransactionList data = new TransactionList(JsonConvert.DeserializeObject<List<Transaction>>(fileInput));
 
                 return data;
             }
@@ -246,22 +240,18 @@ namespace SupportBank
 
                 // TODO: indicate error locations
                 DateTime epoch = DateTime.Parse("01/01/1900");
-                List<Transaction> transactions = (
-                    from transaction in xml.Elements("SupportTransaction")
-                    select new Transaction(
-                        epoch.AddDays(int.Parse(transaction.Attribute("Date").Value)),
-                        transaction.Element("Parties").Element("From").Value,
-                        transaction.Element("Parties").Element("To").Value,
-                        transaction.Element("Description").Value,
-                        decimal.Parse(transaction.Element("Value").Value)
-                    )
-                ).ToList();
-                
-                TransactionList data = new TransactionList();
-                foreach (Transaction t in transactions)
-                {
-                    data.Add(t);
-                }
+                TransactionList data = new TransactionList(
+                        (
+                            from transaction in xml.Elements("SupportTransaction")
+                            select new Transaction(
+                                epoch.AddDays(int.Parse(transaction.Attribute("Date").Value)),
+                                transaction.Element("Parties").Element("From").Value,
+                                transaction.Element("Parties").Element("To").Value,
+                                transaction.Element("Description").Value,
+                                decimal.Parse(transaction.Element("Value").Value)
+                        )
+                    ).ToList()
+                );
 
                 return data;
             }

@@ -20,6 +20,16 @@ namespace SupportBank
             Transactions = new List<Transaction>();
         }
 
+        public TransactionList(List<Transaction> list)
+        {
+            Transactions = new List<Transaction>();
+
+            foreach (Transaction t in list)
+            {
+                Transactions.Add(t);
+            }
+        }
+
         public void Add(Transaction t)
         {
             Transactions.Add(t);
