@@ -151,7 +151,6 @@ namespace SupportBank
                 }
 
                 // rest of csv
-                // TODO: indicate which field contains the problem
                 bool errorsFound = false;
                 while (!parser.EndOfData)
                 {
@@ -245,6 +244,7 @@ namespace SupportBank
             {
                 XElement xml = XElement.Load(fileName);
 
+                // TODO: indicate error locations
                 DateTime epoch = DateTime.Parse("01/01/1900");
                 List<Transaction> transactions = (
                     from transaction in xml.Elements("SupportTransaction")

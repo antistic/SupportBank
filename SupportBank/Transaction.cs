@@ -84,8 +84,7 @@ namespace SupportBank
     class Transaction
     {
         static public int Length = 5;
-
-        // TODO: amount should probably be an Int
+        
         public Transaction(DateTime date, string from, string to, string narrative, decimal amount)
         {
             Date = date;
