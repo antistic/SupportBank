@@ -17,23 +17,24 @@ namespace SupportBank
             {
                 Console.WriteLine("Enter a command");
                 input = Console.ReadLine();
-                if (!validCommand(input))
+                if (!ValidCommand(input))
                 {
                     Console.WriteLine("Command must be 'List All', 'List [Account]' or 'q' to quit");
                 }
                 else
                 {
-                    string target = input.Split(' ')[1];
+                    Console.WriteLine();
+                    TransactionList data = ParseCSV(@"../../../Transactions2014.csv");
+                    string target = input.Split(new[] { ' ' }, 2)[1];
                     switch (target)
                     {
                         case "All":
-                            Console.WriteLine("listing all");
-                            parseCSV((anything) => true);
+                            Console.WriteLine("Listing All:");
+                            data.Print((anything) => true);
                             break;
                         default:
-                            // TODO: check if valid account
-                            Console.WriteLine("listing the account " + target);
-                            // TODO: parse CSV here too
+                            Console.WriteLine("Listing transactions involving '" + target + "':");
+                            data.Print((transaction) => transaction.From.Equals(target) || transaction.To.Equals(target) );
                             break;
                     }
                     Console.WriteLine();
@@ -41,52 +42,53 @@ namespace SupportBank
             }
         }
 
-        static bool validCommand(string command)
+        static bool ValidCommand(string command)
         {
-            string[] split = command.Split(' ');
-            if (split.Length == 2 && split[0].Equals("List"))
+            string[] split = command.Split(new[] { ' ' }, 2);
+            if (split[0].Equals("List"))
             {
-                // TODO: check if valid account/"All"
                 return true;
             }
 
             return false;
         }
 
-        static void parseCSV(Func<string[], bool> filter)
+        static TransactionList ParseCSV(string fileName)
         {
-            // TODO: reference the file somewhere else so that this function is more generic
-            using (TextFieldParser parser = new TextFieldParser(@"../../../Transactions2014.csv"))
+            TransactionList data = new TransactionList();
+
+            using (TextFieldParser parser = new TextFieldParser(fileName))
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
 
-                // TODO: pretty print by finding out max length of each column
-                // header
+                
                 if (!parser.EndOfData)
                 {
-                    string[] fields = parser.ReadFields();
-                    foreach (string field in fields)
-                    {
-                        Console.Write(field + '\t');
-                    }
-                    Console.WriteLine();
+                    // header
+                    // TODO?: check header is as expected
+                    parser.ReadFields();
                 }
 
                 // rest of csv
                 while (!parser.EndOfData)
                 {
                     string[] fields = parser.ReadFields();
-                    if (filter(fields))
-                    {
-                        foreach (string field in fields)
-                        {
-                            Console.Write(field + '\t');
-                        }
-                        Console.WriteLine();
-                    }
+
+                    // TODO exception handling on convert
+                    Transaction t = new Transaction(
+                        DateTime.Parse(fields[0]),
+                        fields[1],
+                        fields[2],
+                        fields[3],
+                        float.Parse(fields[4])
+                    );
+
+                    data.Add(t);
                 }
             }
+
+            return data;
         }
     }
 }
