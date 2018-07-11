@@ -23,7 +23,7 @@ namespace SupportBank
             config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, target));
             LogManager.Configuration = config;
 
-            logger.Log(LogLevel.Info, "Program Started");
+            logger.Info("Program Started");
 
             TransactionList data = ParseCSV(@"..\..\..\DodgyTransactions2015.csv");
 
@@ -35,7 +35,7 @@ namespace SupportBank
                 input = Console.ReadLine();
                 if (!ValidCommand(input))
                 {
-                    logger.Log(LogLevel.Debug, "Invalid input '" + input + "'");
+                    logger.Debug("Invalid input '" + input + "'");
                     Console.WriteLine("Command must be 'List All', 'List [Account]' or 'q' to quit");
                 }
                 else
@@ -45,12 +45,12 @@ namespace SupportBank
                     switch (item)
                     {
                         case "All":
-                            logger.Log(LogLevel.Debug, "Listing All");
+                            logger.Debug("Listing All");
                             Console.WriteLine("Listing All:");
                             data.PrintAll();
                             break;
                         default:
-                            logger.Log(LogLevel.Debug, "Listing transactions involving '" + item + "'");
+                            logger.Debug("Listing transactions involving '" + item + "'");
                             Console.WriteLine("Listing transactions involving '" + item + "':");
                             data.PrintAccount(item);
                             break;
@@ -59,7 +59,7 @@ namespace SupportBank
                 }
             }
 
-            logger.Log(LogLevel.Info, "Quit Program by 'q' command");
+            logger.Info("Quit Program by 'q' command");
         }
 
         static bool ValidCommand(string command)
@@ -77,56 +77,75 @@ namespace SupportBank
         {
             TransactionList data = new TransactionList();
 
-            logger.Log(LogLevel.Debug, "Parsing file '" + fileName + "'");
+            logger.Debug("Parsing file '" + fileName + "'");
             using (TextFieldParser parser = new TextFieldParser(fileName))
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
 
-                int index = 0;
+                int lineNumber = 0;
                 
                 if (!parser.EndOfData)
                 {
                     // header
                     // TODO?: check header is as expected
                     parser.ReadFields();
-                    index += 1;
+                    lineNumber += 1;
                 }
 
                 // rest of csv
-                List<int> errorLines = new List<int>();
+                // TODO: indicate which field contains the problem
+                bool errorsFound = false;
                 while (!parser.EndOfData)
                 {
                     string[] fields = parser.ReadFields();
-                    index += 1;
+                    lineNumber += 1;
 
                     try
                     {
+                        DateTime date;
+                        decimal amount;
+
+                        try
+                        {
+                            date = DateTime.Parse(fields[0]);
+                        }
+                        catch (Exception)
+                        {
+                            throw new FormatException("Invalid Date");
+                        }
+
+                        try
+                        {
+                            amount = decimal.Parse(fields[4]);
+                        }
+                        catch (Exception)
+                        {
+                            throw new FormatException("Invalid Amount");
+                        }
+
                         Transaction t = new Transaction(
-                            DateTime.Parse(fields[0]),
+                            date,
                             fields[1],
                             fields[2],
                             fields[3],
-                            decimal.Parse(fields[4])
+                            amount
                         );
 
                         data.Add(t);
                     }
                     catch (Exception e)
                     {
-                        logger.Log(LogLevel.Error, "Error found on line " + index + " in the CSV: " + e);
-                        errorLines.Add(index);
-                    }
-                }
+                        logger.Error("Error found on line " + lineNumber + " in the CSV:\n" + e);
 
-                if (errorLines.Any())
-                {
-                    Console.Write("Errors have been found on lines ");
-                    foreach (int line in errorLines)
-                    {
-                        Console.Write(line + ", ");
+                        if (!errorsFound)
+                        {
+                            Console.WriteLine("Errors have been found. These transactions will be ignored.");
+                            errorsFound = true;
+                        }
+                        
+                        Console.WriteLine("\t" + lineNumber + ": " + e.Message);
                     }
-                    Console.WriteLine("these transactions will be ignored.");
                 }
             }
 
