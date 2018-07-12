@@ -54,7 +54,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Accounts.cs" />
+    <Compile Include="BankTeller.cs" />
+    <Compile Include="Account.cs" />
+    <Compile Include="Exporter.cs" />
+    <Compile Include="Importer.cs" />
     <Compile Include="Transaction.cs" />
+    <Compile Include="Bank.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
