@@ -5,6 +5,8 @@
 
 # data
 *.csv
+*.xml
+*.json
 
 # User-specific files
 *.suo
