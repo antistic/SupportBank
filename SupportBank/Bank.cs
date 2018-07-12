@@ -25,7 +25,7 @@ namespace SupportBank.Banking
 
         public void ImportFromFile(string fileName)
         {
-            transactions = Importer.Import(fileName);
+            Add(Importer.Import(fileName));
         }
         
         public void ExportFromFile(string fileName)
