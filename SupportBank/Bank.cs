@@ -13,7 +13,7 @@ namespace SupportBank.Banking
         Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private List<Transaction> transactions;
         private Accounts accounts = new Accounts();
-        private Dictionary<string, int> MaxWidths = new Dictionary<string, int>()
+        private Dictionary<string, int> maxWidths = new Dictionary<string, int>()
             {
                 { "date", "dd/MM/yy".Length }, { "from", 0 }, { "to", 0 }, { "narrative", 0 }
             };
@@ -33,18 +33,18 @@ namespace SupportBank.Banking
             Exporter.Export(fileName, transactions);
         }
 
-        public void Add(Transaction t)
+        private void Add(Transaction t)
         {
             transactions.Add(t);
             accounts.Add(t);
 
             // update maxwidths
-            if (t.FromAccount.ToString().Length > MaxWidths["from"]) MaxWidths["from"] = t.FromAccount.ToString().Length;
-            if (t.ToAccount.ToString().Length > MaxWidths["to"]) MaxWidths["to"] = t.ToAccount.ToString().Length;
-            if (t.Narrative.ToString().Length > MaxWidths["narrative"]) MaxWidths["narrative"] = t.Narrative.ToString().Length;
+            if (t.FromAccount.ToString().Length > maxWidths["from"]) maxWidths["from"] = t.FromAccount.ToString().Length;
+            if (t.ToAccount.ToString().Length > maxWidths["to"]) maxWidths["to"] = t.ToAccount.ToString().Length;
+            if (t.Narrative.ToString().Length > maxWidths["narrative"]) maxWidths["narrative"] = t.Narrative.ToString().Length;
         }
 
-        public void Add(List<Transaction> ts)
+        private void Add(List<Transaction> ts)
         {
             foreach (Transaction t in ts)
             {
@@ -54,7 +54,7 @@ namespace SupportBank.Banking
 
         public void PrintAll()
         {
-            accounts.PrintBalances(Math.Max(MaxWidths["from"], MaxWidths["to"]), 10);
+            accounts.PrintBalances(Math.Max(maxWidths["from"], maxWidths["to"]), 10);
         }
 
         public void PrintAccount(string name)
@@ -65,9 +65,9 @@ namespace SupportBank.Banking
             // header
             Console.WriteLine(
                         "{0,-" + "dd/MM/yy".Length + "}\t" +
-                        "{1,-" + MaxWidths["from"] + "}\t" +
-                        "{2,-" + MaxWidths["to"] + "}\t" +
-                        "{3,-" + MaxWidths["narrative"] + "}\t" +
+                        "{1,-" + maxWidths["from"] + "}\t" +
+                        "{2,-" + maxWidths["to"] + "}\t" +
+                        "{3,-" + maxWidths["narrative"] + "}\t" +
                         "{4,10}",
                         "Date", "From", "To", "Narrative", "Amount"
                     );
@@ -77,7 +77,7 @@ namespace SupportBank.Banking
             {
                 if (t.FromAccount.Equals(name) || t.ToAccount.Equals(name))
                 {
-                    t.Print(MaxWidths);
+                    t.Print(maxWidths);
                 }
             }
         }

@@ -66,17 +66,17 @@ namespace SupportBank
             }
         }
 
-        void Import(string fileName)
+        private void Import(string fileName)
         {
             bank.ImportFromFile(fileName);
         }
 
-        public void Export(string fileName)
+        private void Export(string fileName)
         {
             bank.ExportFromFile(fileName);
         }
 
-        public void List(string query)
+        private void List(string query)
         {
             switch (query)
             {
